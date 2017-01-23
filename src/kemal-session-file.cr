@@ -35,7 +35,14 @@ class Session
         end
       end
 
-      define_storage({int: Int32, string: String, float: Float64, bool: Bool})
+      define_storage({
+        int: Int32,
+        bigint: Int64,
+        string:  String,
+        float:   Float64,
+        bool: Bool,
+        #object: Session::StorableObject,
+      })
     end
 
     @cache : StorageInstance
@@ -59,6 +66,43 @@ class Session
           age = Time.utc_now - File.stat(full_path).mtime # mtime is always saved in utc
           File.delete full_path if age.total_seconds > Session.config.timeout.total_seconds
         end
+      end
+    end
+
+    def create_session(session_id : String)
+      read_or_create_storage_instance(session_id)
+    end
+
+    def get_session(session_id : String)
+      read_or_create_storage_instance(session_id)
+    end
+
+    def destroy_session(session_id : String)
+      full_path = @sessions_dir + @cached_session_id + ".json"
+      if File.file? full_path
+        File.delete(full_path)
+      end
+    end
+
+    def destroy_all_sessions
+      Dir.foreach(@sessions_dir) do |f|
+        full_path = @sessions_dir + f
+        if File.file? full_path && full_path.match(/\.json/)
+          File.delete full_path
+        end
+      end
+    end
+
+    def each_session
+      @store.each do |key, val|
+        yield Session.new(key)
+      end
+    end
+
+    def all_sessions
+      files = Dir.entries(@sessions_dir)
+      files.each do |file|
+        arr << file if file.match(/\.json/)
       end
     end
 
@@ -112,6 +156,13 @@ class Session
       {% end %}
     end
 
-    define_delegators({int: Int32, string: String, float: Float64, bool: Bool})
+    define_delegators({
+      int: Int32,
+      bigint: Int64,
+      string: String,
+      float: Float64,
+      bool: Bool,
+      object: Session::StorableObject
+    })
   end
 end

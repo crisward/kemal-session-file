@@ -1,5 +1,5 @@
 require "./spec_helper.cr"
-
+Session.config.secret = "my_super_secret"
 describe "Session::FileSystemEngine" do
   describe "options" do
     describe ":sessions_dir" do
