@@ -121,7 +121,7 @@ class Session
 
     def read_or_create_storage_instance(session_id : String) : StorageInstance
       if File.file? @sessions_dir + session_id + ".json"
-        File.open(@sessions_dir + session_id + ".json","w"){} # should update filemtime when session is read
+         # File.open(@sessions_dir + session_id + ".json","w"){} # should update filemtime when session is read
         return StorageInstance.from_json(File.read(@sessions_dir + session_id + ".json"))
       else
         instance = StorageInstance.new
